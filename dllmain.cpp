@@ -57,12 +57,14 @@ BOOL WINAPI DetourIoControl(_In_ HANDLE hDevice,
 
         struct data {
             unsigned int one, two, three, four, bufferLen;
-            void* dataPointer;
+            void* data;
         } *pk = reinterpret_cast<data*>(lpInBuffer);
 
+        
         auto ret = DEF_FUNC;
-        unsigned int stuff = pk->bufferLen > 0 ? *reinterpret_cast<int*>(pk->dataPointer) : 0;
-        printf("::GetPCIConfig cpu %i: %X %X %X %X buffer: %X %X %f\n", (int)GetCurrentProcessorNumber(), pk->one, pk->two, pk->three, pk->four, pk->bufferLen, pk->bufferLen > 0 ? pk->dataPointer : lpInBuffer, (stuff >> 16) / 256.f);
+        unsigned int stuff = (pk->bufferLen > 0 && pk->data != nullptr) ? *reinterpret_cast<int*>(&pk->data) : 0;
+       
+        printf("::GetPCIConfig cpu %i: %X %X %X %X buffer: %X %X %f\n", (int)GetCurrentProcessorNumber(), pk->one, pk->two, pk->three, pk->four, pk->bufferLen, pk->bufferLen > 0 ? pk->data : 0, (stuff >> 16) / 256.f);
 
         return ret;
     }
@@ -85,7 +87,7 @@ dd 0E8h,       0C0010290h, 0C0010292h, 0C0010293h, 8Bh
         case 13: {// GetCurrentFrequency
 
             int stuff = pk->outData;
-            printf("__readmsr ::GetCurrentFrequency cpu %i: freq=%f\n", (int)GetCurrentProcessorNumber(), (float)((pk->outData & 0xFF0000) >> 16) / 2.f, (float)(unsigned __int8)stuff / (float)((stuff >> 8) & 0x3F) * 200.0f);
+            printf("__readmsr ::GetCurrentFrequency cpu %i: freq=%f\n", (int)GetCurrentProcessorNumber(), (float)(unsigned __int8)stuff / (float)((stuff >> 8) & 0x3F) * 200.0f);
             break;
         }
         case 3: {
